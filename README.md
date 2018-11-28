@@ -1,7 +1,7 @@
 # NURBS
 A really simple NURBS library based on libigl. [libigl](https://github.com/libigl/libigl/) is a simple C++ geometry processing library, and I use it mainly for displaying the NURBS curve and NURBS surface.
 
-This project's cmake structure is from [libigl/libigl-example-project](https://github.com/libigl/libigl-example-project), it's a blank project example showing how to use libigl and cmake. 
+This project's cmake structure is from [libigl/libigl-example-project](https://github.com/libigl/libigl-example-project), which is a blank project example showing how to use libigl and cmake. 
 
 ## See the tutorial first
 
@@ -48,4 +48,11 @@ From within the `build` directory just issue:
     ./NURBS_bin
 
 A glfw app should launch displaying a Torus surface.
+
+## examples and results
+1. Cylindrical surface
+![](./examples/cylinder.png)
+2. Torus surface
+![](./examples/torus.png)
+
 

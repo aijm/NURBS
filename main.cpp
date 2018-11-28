@@ -85,7 +85,7 @@ void testNURBSCurve(igl::opengl::glfw::Viewer &viewer)
 	viewer.core.align_camera_center(nurbs2.controlP);
 }
 
-void testNURBSSurface(igl::opengl::glfw::Viewer &viewer)
+void testCylindr(igl::opengl::glfw::Viewer &viewer)
 {
 	vector<MatrixXd> controlPolygon(2);
 	controlPolygon[0] = (MatrixXd(9, 4) <<
@@ -121,7 +121,7 @@ void testNURBSSurface(igl::opengl::glfw::Viewer &viewer)
 	
 	NURBSSurface nurbs(order, controlPolygon, uknots, vkonts, true);
 
-	nurbs.show(viewer, 0.01);
+	nurbs.show(viewer, 0.005);
 	cout << "hahahahah" << endl;
 	viewer.core.align_camera_center(nurbs.mesh_V, nurbs.mesh_F);
 }
@@ -242,7 +242,7 @@ void testTorus(igl::opengl::glfw::Viewer &viewer)
 
 	NURBSSurface nurbs(order, controlPolygon, uknots, vkonts, true);
 
-	nurbs.show(viewer, 0.01);
+	nurbs.show(viewer, 0.005);
 	// Use the z coordinate as a scalar field over the surface
 	//Eigen::VectorXd Z = nurbs.mesh_V.col(2);
 	//Eigen::MatrixXd C;
@@ -269,7 +269,7 @@ int main(int argc, char *argv[])
   //testBezierCurve(viewer);
   //testCube(viewer);
   //testNURBSCurve(viewer);
-  //testNURBSSurface(viewer);
+  //testCylindr(viewer);
   testTorus(viewer);
   viewer.launch();
 }
