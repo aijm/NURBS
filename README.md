@@ -1,5 +1,17 @@
 # NURBS
-A really simple NURBS library based on libigl. [libigl](https://github.com/libigl/libigl/) is a simple C++ geometry processing library, and I use it mainly for displaying the NURBS curve and NURBS surface.
+A really simple NURBS library based on libigl. [libigl](https://github.com/libigl/libigl/) is a simple C++ geometry processing library, and I use it mainly for displaying the NURBS curve and surface.
+
+Existing functions:
+1. compute points on curve or surface with parameters 
+2. display NURBS curve and surface by libigl
+
+to be continued:
+1. readIO and writeIO 
+2. knot insertion and knot removal
+3. degree elevation and degree reduction
+4. NURBS curve and surface fitting
+5. T-Spline (it's hard ...)
+
 
 This project's cmake structure is from [libigl/libigl-example-project](https://github.com/libigl/libigl-example-project), which is a blank project example showing how to use libigl and cmake. 
 
