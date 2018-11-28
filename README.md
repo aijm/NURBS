@@ -9,7 +9,7 @@ Then build, run and understand the [libigl
 tutorial](http://libigl.github.io/libigl/tutorial/).
 
 ## Compile
-Aftering download and install libigl, you need to add the Path of libigl to this project by modifying `FindLIBIGL.cmake`
+After downloading and installing libigl, you need to add the Path of libigl to this project by modifying `FindLIBIGL.cmake`
 ```
 find_path(LIBIGL_INCLUDE_DIR igl/readOBJ.h
     HINTS
