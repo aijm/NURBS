@@ -51,8 +51,8 @@ A glfw app should launch displaying a Torus surface.
 
 ## examples and results
 1. Cylindrical surface
-![](https://github.com/aijm/NURBS/tree/master/examples/cylinder.png)
+![cylinder.PNG](https://github.com/aijm/NURBS/blob/master/examples/cylinder.PNG)
 2. Torus surface
-![](https://github.com/aijm/NURBS/tree/master/examples/torus.png)
+![torus.PNG](https://github.com/aijm/NURBS/blob/master/examples/torus.PNG)
 
 
