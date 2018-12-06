@@ -11,6 +11,7 @@ using namespace Eigen;
 using namespace std;
 struct NURBSCurve
 {
+	NURBSCurve(){}
 	/*input format:
 	_n       : P_0,P_1,...,P_n; _n is the final index
 	_k       : order of BSpline
@@ -24,10 +25,19 @@ struct NURBSCurve
 	// evaluate the coordinate of curvePoint with parameter t  
 	MatrixXd eval(double t);
 
+	// basis function N_(i,p)(t)
+	double basis(int i, int p, double t, const VectorXd &knotvector);
+
+	// interpolate by bspline of degree 3
+	void interpolate(const MatrixXd &points);
+
+	// kont insertion
+	bool insert(double t);
+
 	// display by libigl
 	void show(igl::opengl::glfw::Viewer& viewer, double resolution = 0.01);
 
-	bool isRational;
+	bool isRational = false;
 	int n; // P_0,P_1,...,P_n; _n is the final index
 	int k; // order of BSpline
 	VectorXd knots;
