@@ -2,7 +2,33 @@
 #include "BezierCurve.h"
 #include "NURBSCurve.h"
 #include "NURBSSurface.h"
+void testInterpolate(igl::opengl::glfw::Viewer &viewer)
+{
+	NURBSCurve nurbs;
 
+	/*VectorXd knots(4);
+	knots << 0, 0.25, 0.5, 0.75;
+	cout << "value: " << nurbs.basis(knots, 0) << endl;
+	cout << "value: " << nurbs.basis(knots, 0.3) << endl;
+	cout << -1.5 + 12 * 0.3 - 16 * 0.3*0.3 << endl;*/
+
+	MatrixXd points = (MatrixXd(9, 3) <<
+		1.0, 0.0, 0.0,
+		1.0, 1.0, 0.0,
+		0.0, 1.0, 0.0,
+		-1.0, 1.0, 0.0,
+		-1.0, 0.0, 0.0,
+		-1.0, -1.0, 0.0,
+		0.0, -1.0, 0.0,
+		1.0, -1.0, 0.0,
+		1.0, 0.0, 0.0).finished();
+	nurbs.interpolate(points);
+	nurbs.show(viewer, 0.01);
+	viewer.data().add_points(points,RowVector3d(0.0,1.0,0.0));
+	viewer.core.align_camera_center(points);
+
+	
+}
 void testCube(igl::opengl::glfw::Viewer &viewer)
 {
 	// Inline mesh of a cube
@@ -255,9 +281,72 @@ void testTorus(igl::opengl::glfw::Viewer &viewer)
 	//viewer.core.align_camera_center(nurbs.mesh_V, nurbs.mesh_F);
 }
 
-void testBSplineCurve(igl::opengl::glfw::Viewer &viewer)
-{
+void testSurface1(igl::opengl::glfw::Viewer &viewer)
+{	
+	vector<MatrixXd> controlPolygon(4);
+	/*controlPolygon[0] = (MatrixXd(6, 3) <<
+		-25, -25, -10,
+		-25, -15, -5,
+		-25, -5, 0,
+		-25, 5, 0,
+		-25, 15, -5,
+		-25, 25, -10).finished();*/
 
+	controlPolygon[0] = (MatrixXd(4, 3) <<
+		//-15, -25, -8,
+		-15, -15, -4,
+		-15, -5, -4,
+		-15, 5, -4,
+		-15, 15, -4/*,
+		-15, 25, -8*/).finished();
+
+	controlPolygon[1] = (MatrixXd(4, 3) <<
+		//-5, -25, -5,
+		-5, -15, -3,
+		-5, -5, -8, 
+		-5, 5, -8, 
+		-5, 15, -3/*,
+		-5, 25, -5*/).finished();
+
+	controlPolygon[2] = (MatrixXd(4, 3) <<
+		//5, -25, -3,
+		5, -15, -2,
+		5, -5, -8,
+		5, 5, -8,
+		5, 15, -2/*,
+		5, 25, -3*/).finished();
+
+	controlPolygon[3] = (MatrixXd(4, 3) <<
+		//15, -25, -8,
+		15, -15, -4,
+		15, -5, -4,
+		15, 5, -4,
+		15, 15, -4/*,
+		15, 25, -8*/).finished();
+
+	/*controlPolygon[5] = (MatrixXd(6, 3) <<
+		25, -25, -10,
+		25, -15, -5,
+		25, -5, 2,
+		25, 5, 2,
+		25, 15, -5,
+		25, 25, -10).finished();*/
+
+	Eigen::VectorXd uknots(8);
+	Eigen::VectorXd vkonts(8);
+	uknots << -1.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 4.0;
+	vkonts << -1.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 4.0;
+
+	VectorXi order(2);
+	order << 4, 4;
+
+
+	NURBSSurface nurbs(order, controlPolygon, uknots, vkonts, false);
+
+	nurbs.show(viewer, 1);
+	cout << "hahahahah" << endl;
+	viewer.core.align_camera_center(nurbs.mesh_V, nurbs.mesh_F);
+	cout << "nurbs: \n" << nurbs.mesh_V << endl;
 }
 
 int main(int argc, char *argv[])
@@ -270,6 +359,8 @@ int main(int argc, char *argv[])
   //testCube(viewer);
   //testNURBSCurve(viewer);
   //testCylindr(viewer);
-  testTorus(viewer);
+  //testTorus(viewer);
+  //testSurface1(viewer);
+  testInterpolate(viewer);
   viewer.launch();
 }

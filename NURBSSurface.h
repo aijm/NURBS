@@ -10,6 +10,7 @@ using namespace Eigen;
 using namespace std;
 struct NURBSSurface
 {
+	NURBSSurface(){}
 	/*input format:
 	_order       : // _order(0):u direction; _order(1): v direction
 	_controlP: _controlP[i] represents u direction control point ,matrix (m+1) by 3 or 4
@@ -38,7 +39,7 @@ struct NURBSSurface
 	// add mesh,control points,control polygon to ViewerData for drawing
 	void show(igl::opengl::glfw::Viewer& viewer, double resolution = 0.01);
 
-	bool isRational;
+	bool isRational = false;
 	int u_order; // order of u direction
 	int v_order; // order of v direction
 	int u_num; // the final index of u direction control point
