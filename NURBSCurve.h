@@ -19,6 +19,11 @@ struct NURBSCurve
 	_knots   : t_0,t_1,...,t_(n+k); */
 	NURBSCurve(int _n, int _k, MatrixXd _controlP, VectorXd _knots, bool _isRational = false);
 
+	// load
+	bool loadNURBS(string);
+	// save
+	bool saveNURBS(string);
+	
 	// find the knot interval of t by binary searching
 	int find_ind(double t);
 
@@ -35,7 +40,14 @@ struct NURBSCurve
 	bool insert(double t);
 
 	// display by libigl
-	void show(igl::opengl::glfw::Viewer& viewer, double resolution = 0.01);
+	void draw(igl::opengl::glfw::Viewer& viewer, bool showpolygon=true,bool showsurface=true,double resolution = 0.01);
+
+	// draw controlpolygon
+	void drawControlPolygon(igl::opengl::glfw::Viewer &viewer);
+
+	// draw NURBS surface
+	void drawSurface(igl::opengl::glfw::Viewer &viewer, double resolution = 0.01);
+
 
 	bool isRational = false;
 	int n; // P_0,P_1,...,P_n; _n is the final index

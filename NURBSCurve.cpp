@@ -19,15 +19,58 @@ NURBSCurve::NURBSCurve(int _n, int _k, MatrixXd _controlP, VectorXd _knots, bool
 	controlPw = _controlP;
 	isRational = _isRational;
 
-	if (_isRational) {
-		assert(_controlP.cols() == 3 || _controlP.cols() == 4);
-		controlP = controlPw.rowwise().hnormalized();
-	}
-	else {
-		assert(_controlP.cols() == 2 || _controlP.cols() == 3);
-		controlP = controlPw;
-	}
+	// if (_isRational) {
+	// 	assert(_controlP.cols() == 3 || _controlP.cols() == 4);
+	// 	controlP = controlPw.rowwise().hnormalized();
+	// }
+	// else {
+	// 	assert(_controlP.cols() == 2 || _controlP.cols() == 3);
+	// 	controlP = controlPw;
+	// }
 
+}
+
+// load
+bool NURBSCurve::loadNURBS(string name){
+	ifstream in(name.c_str());
+	if(!in){
+		return false;
+	}
+	in >> isRational;
+	in >> n >> k;
+	int dimension=3;
+	in >> dimension;
+
+	controlPw = MatrixXd(n+1,dimension);
+	knots = VectorXd(n+k+1);
+	// to do.
+	for(int i=0;i < controlPw.rows();i++){
+		for(int j=0;j< controlPw.cols();j++){
+			in >> controlPw(i,j);
+		}
+	}
+	for(int i=0;i<knots.size();i++){
+		in >> knots(i);
+	}
+	return true;
+}
+// save
+bool NURBSCurve::saveNURBS(string name){
+	if(isRational){
+		name += ".cptw";
+	}else{
+		name += ".cpt";
+	}
+	ofstream out(name.c_str());
+	if(!out){
+		return false;
+	}
+	out<< isRational<<endl;
+	out<< n <<" "<< k<<endl;
+	out<< controlPw.cols()<<endl;
+	out<< controlPw <<endl;
+	out<< knots.transpose();
+	return true;
 }
 
 // find the knot interval of t by binary searching
@@ -159,16 +202,59 @@ void NURBSCurve::interpolate(const MatrixXd &points)
 bool NURBSCurve::insert(double t)
 {
 	int L = find_ind(t);
-	// P
-	//MatrixXd new_controlPw()
+	// befor insert: p_0, ..., p_(L-k+1), p_(L-k+2),... ,		 p_L,...
+	// after insert: p_0, ..., p_(L-k+1), p'_(L-k+2),..., p'_L,  p'_(L+1)=p_L,...   
+	int start = (L-k+1>=0)?L-k+1:0;
+	int end = (L<=n)?L:n;
+	MatrixXd new_controlPw(controlPw.rows()+1,controlPw.cols());
+	for(int i=0;i<new_controlPw.rows();i++){
+		if(i<=start){
+			new_controlPw.row(i) = controlPw.row(i);
+		}else if(i<=end){
+			double factor = (t-knots(i))/(knots(i+k-1)-knots(i));
+			new_controlPw.row(i)=factor*controlPw.row(i)+(1.0-factor)*controlPw.row(i-1);
+			
+		}else{
+			new_controlPw.row(i)=controlPw.row(i-1);
 
+		}
+	}
+
+	VectorXd new_knots(knots.size()+1);
+	for(int i=0;i<new_knots.size();i++){
+		if(i<=L){
+			new_knots(i)=knots(i);
+		}else if(i==L){
+			new_knots(i)=t;
+		}else{
+			new_knots(i)=knots(i-1);
+		}
+	}
+
+	controlPw = new_controlPw;
+	knots = new_knots;
+	n+=1;
 
 	return false;
 }
 
-// display by libigl
-void NURBSCurve::show(igl::opengl::glfw::Viewer& viewer, double resolution)
-{
+
+// draw controlpolygon
+void NURBSCurve::drawControlPolygon(igl::opengl::glfw::Viewer &viewer){
+	
+	// plot control points
+	viewer.data().add_points(controlP, Eigen::RowVector3d(1, 0, 0));
+	// plot control polygon
+	for (int i = 0; i < n; i++){
+		viewer.data().add_edges(
+			controlP.row(i),
+			controlP.row(i + 1),
+			Eigen::RowVector3d(1, 0, 0));
+	}
+}
+
+// draw NURBS surface
+void NURBSCurve::drawSurface(igl::opengl::glfw::Viewer &viewer, double resolution){
 	double left = knots(k - 1);
 	double right = knots(n + 1);
 	const int num = (right - left) / resolution;
@@ -190,19 +276,28 @@ void NURBSCurve::show(igl::opengl::glfw::Viewer& viewer, double resolution)
 		}
 
 	}
+}
 
-	// plot control points
-	viewer.data().add_points(controlP, Eigen::RowVector3d(1, 0, 0));
-	// plot control polygon
-	for (int i = 0; i < n; i++)
-	{
-		viewer.data().add_edges(
-			controlP.row(i),
-			controlP.row(i + 1),
-			Eigen::RowVector3d(1, 0, 0));
+
+// display by libigl
+void NURBSCurve::draw(
+	igl::opengl::glfw::Viewer& viewer, 
+	bool showpolygon,bool showsurface,
+	double resolution)
+{
+	if(isRational){
+		controlP = controlPw.rowwise().hnormalized();
+	}else{
+		controlP = controlPw;
 	}
 
-
+	if(showpolygon){
+		drawControlPolygon(viewer);
+	}
+	if(showsurface){
+		drawSurface(viewer);
+	}
+	viewer.core.align_camera_center(controlP);
 }
 
 

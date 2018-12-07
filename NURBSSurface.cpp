@@ -98,8 +98,39 @@ MatrixXd NURBSSurface::eval(
 }
 
 
-void NURBSSurface::show(igl::opengl::glfw::Viewer& viewer, double resolution)
-{
+// draw controlpolygon
+void NURBSSurface::drawControlPolygon(igl::opengl::glfw::Viewer &viewer){
+	
+	//plot control points and control polygon
+	
+	//plot control points
+	for (int i = 0; i < controlP.size(); i++)
+	{
+		viewer.data().add_points(
+			controlP[i],
+			Eigen::RowVector3d(1, 0, 0));
+	}
+	// plot control polygon
+	for (int j = 0; j <= v_num; j++)
+		for (int i = 0; i <= u_num; i++)
+		{
+			if (i != u_num) {
+				viewer.data().add_edges(
+					controlP[j].row(i),
+					controlP[j].row(i + 1),
+					Eigen::RowVector3d(1, 0, 0));
+			}
+			if (j != v_num) {
+				viewer.data().add_edges(
+					controlP[j].row(i),
+					controlP[j + 1].row(i),
+					Eigen::RowVector3d(1, 0, 0));
+			}
+		}
+}
+
+// draw NURBS surface
+void NURBSSurface::drawSurface(igl::opengl::glfw::Viewer &viewer, double resolution){
 	// cut apart the parameter domain
 	double u_low = uknots(u_order - 1);
 	double u_high = uknots(u_num + 1);
@@ -131,61 +162,29 @@ void NURBSSurface::show(igl::opengl::glfw::Viewer& viewer, double resolution)
 			mesh_F.row(F_index) << V_index, V_index + 1, V_index + uspan + 1;
 			mesh_F.row(F_index + 1) << V_index + uspan + 1, V_index + 1, V_index + uspan + 2;
 		}
-	viewer.data().set_mesh(mesh_V, mesh_F);
-	
-	//plot control points and control polygon
-	if (isRational) {
-		//plot control points
-		for (int i = 0; i < controlPw.size(); i++)
-		{
-			viewer.data().add_points(
-				controlPw[i].rowwise().hnormalized(),
-				Eigen::RowVector3d(1, 0, 0));
-		}
-		// plot control polygon
-		for (int j = 0; j <= v_num; j++)
-			for (int i = 0; i <= u_num; i++)
-			{
-				if (i != u_num) {
-					viewer.data().add_edges(
-						controlPw[j].row(i).hnormalized(),
-						controlPw[j].row(i + 1).hnormalized(),
-						Eigen::RowVector3d(1, 0, 0));
-				}
-				if (j != v_num) {
-					viewer.data().add_edges(
-						controlPw[j].row(i).hnormalized(),
-						controlPw[j + 1].row(i).hnormalized(),
-						Eigen::RowVector3d(1, 0, 0));
-				}
-			}
 
+	viewer.data().set_mesh(mesh_V, mesh_F);
+}
+
+
+void NURBSSurface::draw(
+	igl::opengl::glfw::Viewer &viewer, 
+	bool showpolygon,bool showsurface,
+	double resolution){
+
+	if(controlP.size()!=controlPw.size()){
+		controlP = vector<MatrixXd>(controlPw.size());
 	}
-	else {
-		//plot control points
-		for (int i = 0; i < controlPw.size(); i++)
-		{
-			viewer.data().add_points(
-				controlPw[i],
-				Eigen::RowVector3d(1, 0, 0));
-		}
-		// plot control polygon
-		for (int j = 0; j <= v_num; j++)
-			for (int i = 0; i <= u_num; i++)
-			{
-				if (i != u_num) {
-					viewer.data().add_edges(
-						controlPw[j].row(i),
-						controlPw[j].row(i + 1),
-						Eigen::RowVector3d(1, 0, 0));
-				}
-				if (j != v_num) {
-					viewer.data().add_edges(
-						controlPw[j].row(i),
-						controlPw[j + 1].row(i),
-						Eigen::RowVector3d(1, 0, 0));
-				}
-			}
+	for(int i=0;i<controlP.size();i++){
+		controlP[i] = controlPw[i].rowwise().hnormalized();
+	}
+	if(showpolygon){
+		drawControlPolygon(viewer);
+		viewer.core.align_camera_center(controlP[controlP.size()/2]);
+	}
+	if(showsurface){
+		drawSurface(viewer,resolution);
+		viewer.core.align_camera_center(mesh_V,mesh_F);
 	}
 
 }

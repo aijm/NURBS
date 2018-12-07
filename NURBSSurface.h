@@ -36,8 +36,14 @@ struct NURBSSurface
 
 	MatrixXd eval(double t, const MatrixXd &_controlP, const VectorXd &knots);
 
-	// add mesh,control points,control polygon to ViewerData for drawing
-	void show(igl::opengl::glfw::Viewer& viewer, double resolution = 0.01);
+	// display by libigl
+	void draw(igl::opengl::glfw::Viewer& viewer, bool showpolygon=true,bool showsurface=true,double resolution = 0.01);
+
+	// draw controlpolygon
+	void drawControlPolygon(igl::opengl::glfw::Viewer &viewer);
+
+	// draw NURBS surface
+	void drawSurface(igl::opengl::glfw::Viewer &viewer, double resolution = 0.01);
 
 	bool isRational = false;
 	int u_order; // order of u direction
