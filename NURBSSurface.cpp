@@ -44,6 +44,79 @@ NURBSSurface::NURBSSurface(
 	else { assert(dimension == 3); }
 
 }
+
+
+// load
+bool NURBSSurface::loadNURBS(string name){
+	ifstream in(name);
+	if(!in){
+		return false;
+	}
+	char sep;
+	dimension=3;
+	in>> isRational;
+	in>> u_num >> v_num;
+	in>> u_order >> v_order;
+	in>> dimension;
+	controlPw = vector<MatrixXd>(v_num+1);
+	for(int i=0;i<controlPw.size();i++){
+		controlPw[i] = MatrixXd(u_num+1,dimension);
+	}
+	for(int i=0;i<controlPw.size();i++){
+		for(int j=0;j<=u_num;j++){
+			for(int k=0;k<dimension;k++){
+				in>> controlPw[i](j,k);
+			}
+			in>>sep;
+		}
+	}
+
+	uknots = VectorXd(u_num+u_order+1);
+	vknots = VectorXd(v_num+v_order+1);
+
+	for(int i=0;i<uknots.size();i++){
+		in>>uknots(i);
+	}
+	
+	for(int i=0;i<vknots.size();i++){
+		in>>vknots(i);
+	}
+	return true;
+}
+
+// save 
+bool NURBSSurface::saveNURBS(string name){
+	if(controlPw.size()==0){
+		cout<< "nothing to save!"<<endl;
+		return false;
+	}
+	if(isRational){
+		name+=".cptw";
+	}else{
+		name+=".cpt";
+	}
+	ofstream out(name);
+	if(!out){
+		return false;
+	}
+	IOFormat outputFmt(4, 0, " ", " ", "", ",");	
+	out<< isRational<<endl;
+	out<< u_num << " " <<v_num<<endl;
+	out<< u_order << " "<< v_order<<endl;
+	out<< controlPw[0].cols()<<endl;
+	
+	for(int i=0;i<controlPw.size();i++){
+		for(int j=0;j<=u_num;j++){
+			out<<controlPw[i].row(j).format(outputFmt);
+		}
+		out<<endl;
+	}
+	out<<uknots.transpose()<<endl;
+	out<<vknots.transpose();
+	return true;
+}
+	
+
 // find the knot interval of t by binary searching
 int NURBSSurface::find_ind(double t, int k, int n, const VectorXd& knots)
 {
@@ -97,6 +170,11 @@ MatrixXd NURBSSurface::eval(
 	return curvePoint;
 }
 
+
+// kont insertion
+bool NURBSSurface::insert(double s, double t){
+	
+}
 
 // draw controlpolygon
 void NURBSSurface::drawControlPolygon(igl::opengl::glfw::Viewer &viewer){
@@ -175,9 +253,14 @@ void NURBSSurface::draw(
 	if(controlP.size()!=controlPw.size()){
 		controlP = vector<MatrixXd>(controlPw.size());
 	}
-	for(int i=0;i<controlP.size();i++){
-		controlP[i] = controlPw[i].rowwise().hnormalized();
+	if(isRational){
+		for(int i=0;i<controlP.size();i++){
+			controlP[i] = controlPw[i].rowwise().hnormalized();
+		}
+	}else{
+		controlP = controlPw;
 	}
+	
 	if(showpolygon){
 		drawControlPolygon(viewer);
 		viewer.core.align_camera_center(controlP[controlP.size()/2]);

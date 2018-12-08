@@ -63,12 +63,13 @@ int main(int argc, char *argv[])
   //testBezierCurve(viewer);
   //testCube(viewer);
 //   testNURBSCurve(viewer);
-  //testCylindr(viewer);
-  //testTorus(viewer);
-  //testSurface1(viewer);
+//   testCylindr(viewer);
+//   testTorus(viewer);
+//   testSurface1(viewer);
   //testInterpolate(viewer);
-  nurbs.loadNURBS("circle.cptw");
+  //nurbs.loadNURBS("circle.cptw");
   //nurbs.draw(viewer);
+  cout<< nurbs.loadNURBS("curve1.cpt")<<endl;
   viewer.callback_key_down = &key_down;
   nurbs.draw(viewer,showpolygon, showsurface);
   viewer.launch();

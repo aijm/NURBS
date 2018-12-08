@@ -144,9 +144,10 @@ void testCylindr(igl::opengl::glfw::Viewer &viewer)
 	
 	NURBSSurface nurbs(order, controlPolygon, uknots, vkonts, true);
 
-	nurbs.draw(viewer, 0.005);
+	nurbs.draw(viewer);
 	cout << "hahahahah" << endl;
 	viewer.core.align_camera_center(nurbs.mesh_V, nurbs.mesh_F);
+    nurbs.saveNURBS("cylindr");
 }
 
 void testTorus(igl::opengl::glfw::Viewer &viewer)
@@ -265,7 +266,7 @@ void testTorus(igl::opengl::glfw::Viewer &viewer)
 
 	NURBSSurface nurbs(order, controlPolygon, uknots, vkonts, true);
 
-	nurbs.draw(viewer, 0.005);
+	nurbs.draw(viewer);
 	// Use the z coordinate as a scalar field over the surface
 	//Eigen::VectorXd Z = nurbs.mesh_V.col(2);
 	//Eigen::MatrixXd C;
@@ -275,64 +276,65 @@ void testTorus(igl::opengl::glfw::Viewer &viewer)
 	//// Add per-vertex colors
 	//viewer.data().set_colors(C);
 	cout << "hahahahah" << endl;
-	//viewer.core.align_camera_center(nurbs.mesh_V, nurbs.mesh_F);
+	viewer.core.align_camera_center(nurbs.mesh_V, nurbs.mesh_F);
+    nurbs.saveNURBS("torus");
 }
 
 void testSurface1(igl::opengl::glfw::Viewer &viewer)
 {	
-	vector<MatrixXd> controlPolygon(4);
-	/*controlPolygon[0] = (MatrixXd(6, 3) <<
+	vector<MatrixXd> controlPolygon(6);
+	controlPolygon[0] = (MatrixXd(6, 3) <<
 		-25, -25, -10,
 		-25, -15, -5,
 		-25, -5, 0,
 		-25, 5, 0,
 		-25, 15, -5,
-		-25, 25, -10).finished();*/
+		-25, 25, -10).finished();
 
-	controlPolygon[0] = (MatrixXd(4, 3) <<
-		//-15, -25, -8,
+	controlPolygon[1] = (MatrixXd(6, 3) <<
+		-15, -25, -8,
 		-15, -15, -4,
 		-15, -5, -4,
 		-15, 5, -4,
-		-15, 15, -4/*,
-		-15, 25, -8*/).finished();
+		-15, 15, -4,
+		-15, 25, -8).finished();
 
-	controlPolygon[1] = (MatrixXd(4, 3) <<
-		//-5, -25, -5,
+	controlPolygon[2] = (MatrixXd(6, 3) <<
+		-5, -25, -5,
 		-5, -15, -3,
 		-5, -5, -8, 
 		-5, 5, -8, 
-		-5, 15, -3/*,
-		-5, 25, -5*/).finished();
+		-5, 15, -3,
+		-5, 25, -5).finished();
 
-	controlPolygon[2] = (MatrixXd(4, 3) <<
-		//5, -25, -3,
+	controlPolygon[3] = (MatrixXd(6, 3) <<
+		5, -25, -3,
 		5, -15, -2,
 		5, -5, -8,
 		5, 5, -8,
-		5, 15, -2/*,
-		5, 25, -3*/).finished();
+		5, 15, -2,
+		5, 25, -3).finished();
 
-	controlPolygon[3] = (MatrixXd(4, 3) <<
-		//15, -25, -8,
+	controlPolygon[4] = (MatrixXd(6, 3) <<
+		15, -25, -8,
 		15, -15, -4,
 		15, -5, -4,
 		15, 5, -4,
-		15, 15, -4/*,
-		15, 25, -8*/).finished();
+		15, 15, -4,
+		15, 25, -8).finished();
 
-	/*controlPolygon[5] = (MatrixXd(6, 3) <<
+	controlPolygon[5] = (MatrixXd(6, 3) <<
 		25, -25, -10,
 		25, -15, -5,
 		25, -5, 2,
 		25, 5, 2,
 		25, 15, -5,
-		25, 25, -10).finished();*/
+		25, 25, -10).finished();
 
-	Eigen::VectorXd uknots(8);
-	Eigen::VectorXd vkonts(8);
-	uknots << -1.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 4.0;
-	vkonts << -1.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 4.0;
+	Eigen::VectorXd uknots(10);
+	Eigen::VectorXd vkonts(10);
+	uknots << 0.0, 0.0,0.0, 0.0, 1.0, 2.0, 3.0, 3.0,3.0,3.0;
+	vkonts << 0.0, 0.0,0.0, 0.0, 1.0, 2.0, 3.0, 3.0,3.0,3.0;
 
 	VectorXi order(2);
 	order << 4, 4;
@@ -340,10 +342,11 @@ void testSurface1(igl::opengl::glfw::Viewer &viewer)
 
 	NURBSSurface nurbs(order, controlPolygon, uknots, vkonts, false);
 
-	nurbs.draw(viewer, 1);
+	nurbs.draw(viewer);
 	cout << "hahahahah" << endl;
 	viewer.core.align_camera_center(nurbs.mesh_V, nurbs.mesh_F);
-	cout << "nurbs: \n" << nurbs.mesh_V << endl;
+    nurbs.saveNURBS("surface1");
+	//cout << "nurbs: \n" << nurbs.mesh_V << endl;
 }
 
 

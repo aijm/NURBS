@@ -28,6 +28,12 @@ struct NURBSSurface
 
 	NURBSSurface(VectorXi _order, vector<MatrixXd> _controlP, VectorXd _uknots, VectorXd _vknots, bool _isRational = false);
 
+	// load
+	bool loadNURBS(string);
+
+	// save 
+	bool saveNURBS(string);
+
 	// find the knot interval of t by binary searching
 	int find_ind(double t, int k, int n, const VectorXd& knots);
 
@@ -35,6 +41,9 @@ struct NURBSSurface
 	MatrixXd eval(double u, double v);
 
 	MatrixXd eval(double t, const MatrixXd &_controlP, const VectorXd &knots);
+
+	// kont insertion
+	bool insert(double s, double t);
 
 	// display by libigl
 	void draw(igl::opengl::glfw::Viewer& viewer, bool showpolygon=true,bool showsurface=true,double resolution = 0.01);
