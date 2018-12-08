@@ -57,6 +57,9 @@ struct NURBSSurface
 	// draw NURBS surface
 	void drawSurface(igl::opengl::glfw::Viewer &viewer, double resolution = 0.01);
 
+	// surface skinning
+	void skinning(const vector<NURBSCurve> &curves);
+
 	bool isRational = false;
 	int u_order; // order of u direction
 	int v_order; // order of v direction

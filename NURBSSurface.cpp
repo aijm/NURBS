@@ -320,3 +320,29 @@ void NURBSSurface::draw(
 	}
 
 }
+
+// surface skinning: order is the same for every curves
+void NURBSSurface::skinning(const vector<NURBSCurve> &curves){
+	assert(curves.size()>1);
+	vector<map<double,int>> all_knots(curves.size());
+	for(int i=0;i<curves.size();i++){
+		for(int j=0;j<curves[i].knots.size();j++){
+			if(all_knots[i].find(curves[i].knots(j))==all_knots[i].end()){
+				all_knots[i][curves[i].knots(j)] = 1;
+			}else{
+				all_knots[i][curves[i].knots(j)] += 1;
+			}
+		}
+	}
+	for(int i=0;i<curves.size();i++){
+		for(int j=0;j<curves[i].knots.size();j++){
+			// if(all_knots.find(curves[i].knots(j))==all_knots.end()){
+			// 	all_knots[curves[i].knots(j)] = 1;
+			// }else{
+			// 	all_knots[curves[i].knots(j)] +=1;
+			// }
+		}
+	}
+
+	for(int )
+}
