@@ -173,7 +173,7 @@ MatrixXd NURBSSurface::eval(
 
 // kont insertion
 bool NURBSSurface::insert(double s, double t){
-	
+	return false;
 }
 
 // draw controlpolygon

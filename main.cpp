@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
   //testInterpolate(viewer);
   //nurbs.loadNURBS("circle.cptw");
   //nurbs.draw(viewer);
-  cout<< nurbs.loadNURBS("curve1.cpt")<<endl;
+  cout<< nurbs.loadNURBS("../curve1.cpt")<<endl;
   viewer.callback_key_down = &key_down;
   nurbs.draw(viewer,showpolygon, showsurface);
   viewer.launch();

@@ -78,8 +78,8 @@ int NURBSCurve::find_ind(double t)
 {
 	
 	if (t == knots(n + 1)) return n;
-	int low = k - 1;
-	int high = n + 1;
+	int low = 0;
+	int high = n+k;
 	assert(t >= knots(low) && t < knots(high));
 
 	int mid = (low + high) / 2;
@@ -97,6 +97,7 @@ MatrixXd NURBSCurve::eval(double t)
 {
 	// find the knot interval of t by binary searching
 	int L = find_ind(t); //[t_L,t_(L+1)] 
+	assert(L >= k - 1 && L <= n + 1);
 
 	// P_(L-k+1),..,P_L control the interval [t_L,t_(L+1)]
 	MatrixXd temp = controlPw.block(L - k + 1, 0, k, controlPw.cols());
@@ -201,6 +202,10 @@ void NURBSCurve::interpolate(const MatrixXd &points)
 
 bool NURBSCurve::insert(double t)
 {
+	cout << "before inserting:------------------" << endl;
+	cout << "controlPw:\n" << controlPw << endl;
+	cout << "knots:\n" << knots << endl;
+	assert(t >= knots(0) && t <= knots(n + k));
 	int L = find_ind(t);
 	// befor insert: p_0, ..., p_(L-k+1), p_(L-k+2),... ,		 p_L,...
 	// after insert: p_0, ..., p_(L-k+1), p'_(L-k+2),..., p'_L,  p'_(L+1)=p_L,...   
@@ -234,6 +239,9 @@ bool NURBSCurve::insert(double t)
 	controlPw = new_controlPw;
 	knots = new_knots;
 	n+=1;
+	cout << "after inserting:------------------" << endl;
+	cout << "controlPw:\n" << controlPw << endl;
+	cout << "knots:\n" << knots << endl;
 
 	return false;
 }
