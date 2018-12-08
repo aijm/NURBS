@@ -229,7 +229,7 @@ bool NURBSCurve::insert(double t)
 	for(int i=0;i<new_knots.size();i++){
 		if(i<=L){
 			new_knots(i)=knots(i);
-		}else if(i==L){
+		}else if(i==L+1){
 			new_knots(i)=t;
 		}else{
 			new_knots(i)=knots(i-1);

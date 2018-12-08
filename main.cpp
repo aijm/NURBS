@@ -17,14 +17,15 @@ void insert_loop(igl::opengl::glfw::Viewer &viewer) {
 	while (true) {
 		cout << "insert kont, format: s t" << endl;
 		
-		if (!(cin >> s >> t)) {
+		if (!(cin >> s)) {
 			cin.clear(); //clear the buffer
 			cin.get();
 			cout << "error! please use right format!" << endl;
 			continue;
 		}
 		else {
-			nurbs.insert(s, t);
+			cout << "insert : " << s << endl;
+			nurbs.insert(s, 'u');
 			//mesh.drawTmesh(viewer);
 			//mesh.drawControlpolygon(viewer);
 			//mesh.drawSurface(viewer);
@@ -69,7 +70,7 @@ int main(int argc, char *argv[])
   //testInterpolate(viewer);
   //nurbs.loadNURBS("circle.cptw");
   //nurbs.draw(viewer);
-  cout<< nurbs.loadNURBS("cylindr.cptw")<<endl;
+  cout<< nurbs.loadNURBS("../cylindr.cptw")<<endl;
   viewer.callback_key_down = &key_down;
   nurbs.draw(viewer,showpolygon, showsurface);
   viewer.launch();

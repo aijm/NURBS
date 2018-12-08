@@ -175,14 +175,16 @@ MatrixXd NURBSSurface::eval(
 
 // knot insertion
 bool NURBSSurface::insert(double s, char dir){
-	assert(dir=='u' or dir=='v');
+	assert(dir=='u' || dir=='v');
 	if(dir=='u'){
 		for(int i=0;i<controlPw.size();i++){
 			NURBSCurve nurbs(u_num,u_order,controlPw[i],uknots,isRational);
 			nurbs.insert(s);
 			controlPw[i]=nurbs.controlPw;
-			uknots = nurbs.knots;
-			u_num = nurbs.n;
+			if (i == controlPw.size() - 1) {
+				uknots = nurbs.knots;
+				u_num = nurbs.n;
+			}
 		}
 		return true;
 	}else if(dir=='v'){
@@ -194,10 +196,13 @@ bool NURBSSurface::insert(double s, char dir){
 			}
 			NURBSCurve nurbs(v_num,v_order,v_controlPw,vknots,isRational);
 			nurbs.insert(s);
-			vknots = nurbs.knots;
-			v_num = nurbs.n;
+			
 			for(int k=0;k<new_controlPw.size();k++){
 				new_controlPw[k].row(i) = nurbs.controlPw.row(k);
+			}
+			if (i == u_num) {
+				vknots = nurbs.knots;
+				v_num = nurbs.n;
 			}
 		}
 		return true;
