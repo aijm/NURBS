@@ -189,6 +189,9 @@ bool NURBSSurface::insert(double s, char dir){
 		return true;
 	}else if(dir=='v'){
 		vector<MatrixXd> new_controlPw(controlPw.size()+1);
+		for (int i = 0; i < new_controlPw.size(); i++) {
+			new_controlPw[i] = MatrixXd(u_num + 1, controlPw[0].cols());
+		}
 		MatrixXd v_controlPw(v_num+1,controlPw[0].cols());
 		for(int i=0;i<=u_num;i++){
 			for(int j=0;j<=v_num;j++){
@@ -205,6 +208,7 @@ bool NURBSSurface::insert(double s, char dir){
 				v_num = nurbs.n;
 			}
 		}
+		controlPw = new_controlPw;
 		return true;
 
 	}else{

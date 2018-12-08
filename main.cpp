@@ -17,15 +17,15 @@ void insert_loop(igl::opengl::glfw::Viewer &viewer) {
 	while (true) {
 		cout << "insert kont, format: s t" << endl;
 		
-		if (!(cin >> s)) {
+		if (!(cin >> s >> t)) {
 			cin.clear(); //clear the buffer
 			cin.get();
 			cout << "error! please use right format!" << endl;
 			continue;
 		}
 		else {
-			cout << "insert : " << s << endl;
-			nurbs.insert(s, 'u');
+			//cout << "insert : " << s << endl;
+			nurbs.insert(s, t);
 			//mesh.drawTmesh(viewer);
 			//mesh.drawControlpolygon(viewer);
 			//mesh.drawSurface(viewer);
