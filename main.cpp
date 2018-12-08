@@ -5,7 +5,7 @@
 #include "test.h"
 
 
-NURBSCurve nurbs;
+NURBSSurface nurbs;
 double resolution = 0.01;
 
 bool showpolygon = true;
@@ -17,14 +17,14 @@ void insert_loop(igl::opengl::glfw::Viewer &viewer) {
 	while (true) {
 		cout << "insert kont, format: s t" << endl;
 		
-		if (!(cin >> s/* >> t*/)) {
+		if (!(cin >> s >> t)) {
 			cin.clear(); //clear the buffer
 			cin.get();
 			cout << "error! please use right format!" << endl;
 			continue;
 		}
 		else {
-			nurbs.insert(s/*, t*/);
+			nurbs.insert(s, t);
 			//mesh.drawTmesh(viewer);
 			//mesh.drawControlpolygon(viewer);
 			//mesh.drawSurface(viewer);
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
   //testInterpolate(viewer);
   //nurbs.loadNURBS("circle.cptw");
   //nurbs.draw(viewer);
-  cout<< nurbs.loadNURBS("../curve1.cpt")<<endl;
+  cout<< nurbs.loadNURBS("cylindr.cptw")<<endl;
   viewer.callback_key_down = &key_down;
   nurbs.draw(viewer,showpolygon, showsurface);
   viewer.launch();

@@ -6,6 +6,7 @@
 #define NURBSSURFACE_H
 
 #include <igl/opengl/glfw/Viewer.h>
+#include "NURBSCurve.h"
 using namespace Eigen;
 using namespace std;
 struct NURBSSurface
@@ -42,6 +43,8 @@ struct NURBSSurface
 
 	MatrixXd eval(double t, const MatrixXd &_controlP, const VectorXd &knots);
 
+	// knot insertion
+	bool insert(double s, char dir='u');
 	// kont insertion
 	bool insert(double s, double t);
 

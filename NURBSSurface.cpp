@@ -4,6 +4,7 @@
 
 #include "NURBSSurface.h"
 
+
 /*input format:
 _order       : // _order(0):u direction; _order(1): v direction
 _controlP: _controlP[i] represents u direction control point ,matrix (m+1) by 3 or 4
@@ -121,8 +122,8 @@ bool NURBSSurface::saveNURBS(string name){
 int NURBSSurface::find_ind(double t, int k, int n, const VectorXd& knots)
 {
 	if (t == knots(n + 1)) return n;
-	int low = k - 1;
-	int high = n + 1;
+	int low = 0;
+	int high = n + k;
 	assert(t >= knots(low) && t < knots(high));
 
 	int mid = (low + high) / 2;
@@ -151,8 +152,10 @@ MatrixXd NURBSSurface::eval(
 	const MatrixXd &_controlP, 
 	const VectorXd &knots)
 {
+	
 	int n = _controlP.rows() - 1;
 	int k = knots.size() - _controlP.rows();
+	assert(t>=knots(k-1) && t<=knots(n+1));
 	// find the knot interval of t by binary searching
 	int L = find_ind(t, k, n, knots); //[t_L,t_(L+1)] 
 
@@ -170,9 +173,46 @@ MatrixXd NURBSSurface::eval(
 	return curvePoint;
 }
 
+// knot insertion
+bool NURBSSurface::insert(double s, char dir){
+	assert(dir=='u' or dir=='v');
+	if(dir=='u'){
+		for(int i=0;i<controlPw.size();i++){
+			NURBSCurve nurbs(u_num,u_order,controlPw[i],uknots,isRational);
+			nurbs.insert(s);
+			controlPw[i]=nurbs.controlPw;
+			uknots = nurbs.knots;
+			u_num = nurbs.n;
+		}
+		return true;
+	}else if(dir=='v'){
+		vector<MatrixXd> new_controlPw(controlPw.size()+1);
+		MatrixXd v_controlPw(v_num+1,controlPw[0].cols());
+		for(int i=0;i<=u_num;i++){
+			for(int j=0;j<=v_num;j++){
+				v_controlPw.row(j) = controlPw[j].row(i);
+			}
+			NURBSCurve nurbs(v_num,v_order,v_controlPw,vknots,isRational);
+			nurbs.insert(s);
+			vknots = nurbs.knots;
+			v_num = nurbs.n;
+			for(int k=0;k<new_controlPw.size();k++){
+				new_controlPw[k].row(i) = nurbs.controlPw.row(k);
+			}
+		}
+		return true;
+
+	}else{
+		cout<< "please input dir as u or v!"<<endl;
+		return false;
+	}
+}
 
 // kont insertion
 bool NURBSSurface::insert(double s, double t){
+	if(insert(s,'u') && insert(t,'v')){
+		return true;
+	}
 	return false;
 }
 
