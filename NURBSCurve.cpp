@@ -114,6 +114,21 @@ MatrixXd NURBSCurve::eval(double t)
 	return temp.row(0);
 }
 
+VectorXd NURBSCurve::parameterize(const MatrixXd & points)
+{
+	
+	int K = points.rows() - 1;
+	// chord length parametrization, u_0,...,u_K
+	VectorXd params(points.rows());
+	params(0) = 0.0;
+	for (int i = 1; i <= K; i++) {
+		params(i) = params(i - 1) + (points.row(i) - points.row(i - 1)).norm();
+	}
+	params = params / params(K);
+	params(K) = 1.0;
+	return params;
+}
+
 double NURBSCurve::basis(int i,int p, double t,const VectorXd &knotvector)
 {
 	//cout << "knotvector:\n" << knotvector.transpose() << endl;
@@ -127,14 +142,7 @@ double NURBSCurve::basis(int i,int p, double t,const VectorXd &knotvector)
 			return 0.0;
 		}
 	}
-	/*double a = 0.0;
-	double b = 0.0;
-	if (knotvector(i + p - 1) - knotvector(i) != 0.0) {
-		a = (t - knotvector(i)) / (knotvector(i + p - 1) - knotvector(i));
-	}
-	if (knotvector(i + p) - knotvector(i+1) != 0.0) {
-		b = (knotvector(i + p) - t) / (knotvector(i + p) - knotvector(i + 1));
-	}*/
+	
 	double a = knotvector(i+p-1) - knotvector(i);
 	double b = knotvector(i+p) - knotvector(i+1);
 	a = (a == 0.0) ? 0.0 : (t - knotvector(i)) / a;
@@ -161,7 +169,7 @@ void NURBSCurve::interpolate(const MatrixXd &points)
 	
 	knots.block(3, 0, K + 1, 1) = params;
 	knots(K + 6) = 1.0; knots(K + 5) = 1.0; knots(K + 4) = 1.0;
-	cout << "knots:\n" << knots << endl;
+	//cout << "knots:\n" << knots << endl;
 	isRational = false;
 	n = K + 2; // X_0,X_1,...,X_(K+2)
 	k = 4; // order 4
@@ -200,11 +208,61 @@ void NURBSCurve::interpolate(const MatrixXd &points)
 
 }
 
+// interpolate with appointed knot vector
+void NURBSCurve::interpolate(const MatrixXd &points, const VectorXd &knotvector)
+{
+	// points: P_0, ..., P_K
+	//assert(points.rows() >= 4 && (points.cols() == 2 || points.cols() == 3));
+	int K = points.rows() - 1;
+	assert(knotvector.size() == points.rows() + 6);
+	
+	knots = knotvector;
+	VectorXd params = knots.block(3, 0, K + 1, 1);
+	/*knots.block(3, 0, K + 1, 1) = params;
+	knots(K + 6) = 1.0; knots(K + 5) = 1.0; knots(K + 4) = 1.0;*/
+	//cout << "knots:\n" << knots << endl;
+	isRational = false;
+	n = K + 2; // X_0,X_1,...,X_(K+2)
+	k = 4; // order 4
+	controlP = MatrixXd::Zero(K + 3, points.cols());
+	controlP.row(0) = points.row(0);
+	controlP.row(K + 2) = points.row(K);
+
+	// solve linear equation: AX = b
+	VectorXd d0 = (1.0 / (params(0) - params(1)) + 1.0 / (params(0) - params(2)))*points.row(0)
+		+ (1.0 / (params(1) - params(0)) + 1.0 / (params(2) - params(1)))*points.row(1)
+		+ (1.0 / (params(2) - params(0)) + 1.0 / (params(2) - params(1)))*points.row(2);
+
+	VectorXd dK = (1.0 / (params(K) - params(K - 1)) + 1.0 / (params(K) - params(K - 2)))*points.row(K)
+		+ (1.0 / (params(K - 1) - params(K)) + 1.0 / (params(K - 2) - params(K - 1)))*points.row(K - 1)
+		+ (1.0 / (params(K - 1) - params(K - 2)) - 1.0 / (params(K) - params(K - 2)))*points.row(K - 2);
+	MatrixXd X(K + 1, points.cols()); //X_1,...,X_(K+1)
+	MatrixXd A = MatrixXd::Zero(K + 1, K + 1);
+
+	MatrixXd b = points;
+	b.row(0) += (params(1) - params(0)) / 3 * d0;
+	b.row(K) -= (params(K) - params(K - 1)) / 3 * dK;
+
+	A(0, 0) = A(K, K) = 1.0;
+	for (int i = 1; i <= K - 1; i++) {
+		A(i, i - 1) = basis(i, 4, params(i), knots);
+		A(i, i) = basis(i + 1, 4, params(i), knots);
+		//cout << "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii:" << i << endl;
+		A(i, i + 1) = basis(i + 2, 4, params(i), knots);
+
+	}
+	//cout << "A:\n" << A << endl;
+	X = A.inverse()*b;
+	//cout << "X:\n" << X << endl;
+	controlP.block(1, 0, K + 1, points.cols()) = X;
+	controlPw = controlP;
+}
+
 bool NURBSCurve::insert(double t)
 {
-	cout << "before inserting:------------------" << endl;
+	/*cout << "before inserting:------------------" << endl;
 	cout << "controlPw:\n" << controlPw << endl;
-	cout << "knots:\n" << knots << endl;
+	cout << "knots:\n" << knots << endl;*/
 	assert(t >= knots(0) && t <= knots(n + k));
 	int L = find_ind(t);
 	// befor insert: p_0, ..., p_(L-k+1), p_(L-k+2),... ,		 p_L,...
@@ -239,11 +297,11 @@ bool NURBSCurve::insert(double t)
 	controlPw = new_controlPw;
 	knots = new_knots;
 	n+=1;
-	cout << "after inserting:------------------" << endl;
+	/*cout << "after inserting:------------------" << endl;
 	cout << "controlPw:\n" << controlPw << endl;
-	cout << "knots:\n" << knots << endl;
+	cout << "knots:\n" << knots << endl;*/
 
-	return false;
+	return true;
 }
 
 
@@ -251,13 +309,13 @@ bool NURBSCurve::insert(double t)
 void NURBSCurve::drawControlPolygon(igl::opengl::glfw::Viewer &viewer){
 	
 	// plot control points
-	viewer.data().add_points(controlP, Eigen::RowVector3d(1, 0, 0));
+	viewer.data().add_points(controlP, Eigen::RowVector3d(1, 1, 1));
 	// plot control polygon
 	for (int i = 0; i < n; i++){
 		viewer.data().add_edges(
 			controlP.row(i),
 			controlP.row(i + 1),
-			Eigen::RowVector3d(1, 0, 0));
+			Eigen::RowVector3d(1, 1, 1));
 	}
 }
 
@@ -277,10 +335,10 @@ void NURBSCurve::drawSurface(igl::opengl::glfw::Viewer &viewer, double resolutio
 			viewer.data().add_edges(
 				P1.rowwise().hnormalized(),
 				P2.rowwise().hnormalized(),
-				Eigen::RowVector3d(1, 1, 1));
+				Eigen::RowVector3d(1, 0, 0));
 		}
 		else {
-			viewer.data().add_edges(P1, P2, Eigen::RowVector3d(1, 1, 1));
+			viewer.data().add_edges(P1, P2, Eigen::RowVector3d(1, 0, 0));
 		}
 
 	}

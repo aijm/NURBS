@@ -19,6 +19,22 @@ struct NURBSCurve
 	_knots   : t_0,t_1,...,t_(n+k); */
 	NURBSCurve(int _n, int _k, MatrixXd _controlP, VectorXd _knots, bool _isRational = false);
 
+	NURBSCurve(const NURBSCurve &curve){
+		isRational = curve.isRational;
+		n = curve.n;
+		k = curve.k;
+		knots = curve.knots;
+		controlPw = curve.controlPw;
+	}
+
+	NURBSCurve& operator=(const NURBSCurve &curve){
+		isRational = curve.isRational;
+		n = curve.n;
+		k = curve.k;
+		knots = curve.knots;
+		controlPw = curve.controlPw;
+		return *this;
+	}
 	// load
 	bool loadNURBS(string);
 	// save
@@ -30,11 +46,16 @@ struct NURBSCurve
 	// evaluate the coordinate of curvePoint with parameter t  
 	MatrixXd eval(double t);
 
+	// chord length parameterization
+	static VectorXd parameterize(const MatrixXd &points);
 	// basis function N_(i,p)(t)
 	double basis(int i, int p, double t, const VectorXd &knotvector);
 
 	// interpolate by bspline of degree 3
 	void interpolate(const MatrixXd &points);
+
+	// interpolate with appointed knot vector
+	void interpolate(const MatrixXd &points, const VectorXd &knotvector);
 
 	// kont insertion
 	bool insert(double t);
