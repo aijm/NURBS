@@ -9,7 +9,7 @@
 NURBSSurface nurbs;
 double resolution = 0.01;
 
-bool showpolygon = false;
+bool showpolygon = true;
 bool showsurface = true;
 
 void insert_loop(igl::opengl::glfw::Viewer &viewer) {
@@ -64,19 +64,19 @@ void testLampSkinning(igl::opengl::glfw::Viewer &viewer)
 	curves[6].loadNURBS("../lamp7.cptw");
 	curves[7].loadNURBS("../lamp8.cptw");
 
-	/*curves[0].draw(viewer, true, true);
+	curves[0].draw(viewer, true, true);
 	curves[1].draw(viewer, true, true);
 	curves[2].draw(viewer, true, true);
 	curves[3].draw(viewer, true, true);
 	curves[4].draw(viewer, true, true);
 	curves[5].draw(viewer, true, true);
 	curves[6].draw(viewer, true, true);
-	curves[7].draw(viewer, true, true);*/
+	curves[7].draw(viewer, true, true);
 	//NURBSSurface nurbs;
-	vector<NURBSCurve> new_curves(8);
+	//vector<NURBSCurve> new_curves(8);
 	nurbs.skinning(curves, viewer);
 	
-	//nurbs.draw(viewer,false,true);
+	nurbs.draw(viewer,true,true);
 	//nurbs.saveNURBS("lamp_skinning");
 }
 void testCircleSkinning(igl::opengl::glfw::Viewer &viewer)
@@ -89,9 +89,8 @@ void testCircleSkinning(igl::opengl::glfw::Viewer &viewer)
 	circles[1].draw(viewer,false,true);
 	circles[2].draw(viewer,false,true);
 
-	//NURBSSurface nurbs;
-	/*nurbs.skinning(circles);
-	nurbs.draw(viewer);*/
+	nurbs.skinning(circles,viewer);
+	nurbs.draw(viewer,true,true);
 
 	
 }
@@ -108,16 +107,16 @@ int main(int argc, char *argv[])
 //   testNURBSCurve(viewer);
 //   testCylindr(viewer);
 //   testTorus(viewer);
-//   testSurface1(viewer);
+   testSurface1(viewer);
   //testInterpolate(viewer);
   //nurbs.loadNURBS("circle.cptw");
   //nurbs.draw(viewer);
-  //testSkinning(viewer);
-  testLampSkinning(viewer);
+  //testCircleSkinning(viewer);
+  //testLampSkinning(viewer);
 
   //cout<< nurbs.loadNURBS("../circle1.cptw")<<endl;
 
-  viewer.callback_key_down = &key_down;
+  //viewer.callback_key_down = &key_down;
   //nurbs.draw(viewer,showpolygon, showsurface);
   viewer.launch();
 }

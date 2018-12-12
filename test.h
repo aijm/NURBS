@@ -8,20 +8,28 @@ void testInterpolate(igl::opengl::glfw::Viewer &viewer)
 {
 	NURBSCurve nurbs;
 
-	MatrixXd points = (MatrixXd(9, 3) <<
-		1.0, 0.0, 0.0,
-		1.0, 1.0, 0.0,
-		0.0, 1.0, 0.0,
-		-1.0, 1.0, 0.0,
-		-1.0, 0.0, 0.0,
-		-1.0, -1.0, 0.0,
-		0.0, -1.0, 0.0,
-		1.0, -1.0, 0.0,
-		1.0, 0.0, 0.0).finished();
+	
+	// MatrixXd points = (MatrixXd(9, 3) <<
+	// 	1.0, 0.0, 0.0,
+	// 	1.0, 1.0, 0.0,
+	// 	0.0, 1.0, 0.0,
+	// 	-1.0, 1.0, 0.0,
+	// 	-1.0, 0.0, 0.0,
+	// 	-1.0, -1.0, 0.0,
+	// 	0.0, -1.0, 0.0,
+	// 	1.0, -1.0, 0.0,
+	// 	1.0, 0.0, 0.0).finished();
+	MatrixXd points = (MatrixXd(3, 4) <<
+		-0.166, 0.5, 0.0, 0.5,
+		-0.234724, 0.902724, 0.902724, 0.902724,
+		-0.65015, 0.624625, 1.75075, 0.875375).finished();
+	
 	nurbs.interpolate(points);
-	nurbs.draw(viewer, 0.01);
-	viewer.data().add_points(points,RowVector3d(0.0,1.0,0.0));
-	viewer.core.align_camera_center(points);
+	cout << "knots: " << nurbs.knots.transpose() << endl;
+	nurbs.isRational = true;
+	nurbs.draw(viewer);
+	viewer.data().add_points(points.rowwise().hnormalized(),RowVector3d(0.0,1.0,0.0));
+	viewer.core.align_camera_center(points.rowwise().hnormalized());
 
 	
 }
@@ -347,6 +355,7 @@ void testSurface1(igl::opengl::glfw::Viewer &viewer)
 	viewer.core.align_camera_center(nurbs.mesh_V, nurbs.mesh_F);
     nurbs.saveNURBS("surface1");
 	//cout << "nurbs: \n" << nurbs.mesh_V << endl;
+	cout << "finished surface1" << endl;
 }
 
 
