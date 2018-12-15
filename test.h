@@ -4,6 +4,38 @@
 #include "BezierCurve.h"
 #include "NURBSCurve.h"
 #include "NURBSSurface.h"
+
+bool loadpoints(string name,MatrixXd &mat) {
+	ifstream in(name);
+	if (!in) {
+		cout << "error: can't open file" + name << endl;
+		return false;
+	}
+	int rows = 0;
+	int cols = 0;
+	in >> rows >> cols;
+	mat = MatrixXd(rows, cols);
+	for (int i = 0; i < mat.rows(); i++) {
+		for (int j = 0; j < mat.cols(); j++) {
+			in >> mat(i, j);
+		}
+	}
+	cout << "matrix: \n" << mat << endl;
+	return true;
+}
+
+void testBasisFunction() 
+{
+	NURBSCurve nurbs;
+	VectorXd knotvector(10);
+	knotvector << 0, 0, 0, 0, 0.5, 0.6, 1, 1, 1, 1;
+	cout << "value: " << nurbs.basis(0, 4, 0.0, knotvector) << endl;
+	cout << "value: " << nurbs.basis(0, 4, 0.001, knotvector) << endl;
+	cout << "value: " << nurbs.basis(0, 4, 0.5, knotvector) << endl;
+	cout << "value: " << nurbs.basis(5, 4, 1.0, knotvector) << endl;
+	cout << "value: " << nurbs.basis(5, 4, 0.999, knotvector) << endl;
+	
+}
 void testInterpolate(igl::opengl::glfw::Viewer &viewer)
 {
 	NURBSCurve nurbs;
@@ -19,17 +51,18 @@ void testInterpolate(igl::opengl::glfw::Viewer &viewer)
 	// 	0.0, -1.0, 0.0,
 	// 	1.0, -1.0, 0.0,
 	// 	1.0, 0.0, 0.0).finished();
-	MatrixXd points = (MatrixXd(3, 4) <<
-		-0.166, 0.5, 0.0, 0.5,
-		-0.234724, 0.902724, 0.902724, 0.902724,
-		-0.65015, 0.624625, 1.75075, 0.875375).finished();
+	MatrixXd points = (MatrixXd(4, 2) <<
+		-5, -25,
+		-25, -15,
+		-5, -5,
+		-25, 25).finished();
 	
 	nurbs.interpolate(points);
 	cout << "knots: " << nurbs.knots.transpose() << endl;
-	nurbs.isRational = true;
+	nurbs.isRational = false;
 	nurbs.draw(viewer);
-	viewer.data().add_points(points.rowwise().hnormalized(),RowVector3d(0.0,1.0,0.0));
-	viewer.core.align_camera_center(points.rowwise().hnormalized());
+	viewer.data().add_points(points,RowVector3d(0.0,1.0,0.0));
+	viewer.core.align_camera_center(points);
 
 	
 }

@@ -5,8 +5,8 @@
 #include "test.h"
 
 
-//NURBSCurve nurbs;
-NURBSSurface nurbs;
+NURBSCurve nurbs;
+//NURBSSurface nurbs;
 double resolution = 0.01;
 
 bool showpolygon = true;
@@ -74,7 +74,7 @@ void testLampSkinning(igl::opengl::glfw::Viewer &viewer)
 	curves[7].draw(viewer, true, true);
 	//NURBSSurface nurbs;
 	//vector<NURBSCurve> new_curves(8);
-	nurbs.skinning(curves, viewer);
+	//nurbs.skinning(curves, viewer);
 	
 	nurbs.draw(viewer,true,true);
 	//nurbs.saveNURBS("lamp_skinning");
@@ -89,12 +89,35 @@ void testCircleSkinning(igl::opengl::glfw::Viewer &viewer)
 	circles[1].draw(viewer,false,true);
 	circles[2].draw(viewer,false,true);
 
-	nurbs.skinning(circles,viewer);
+	//nurbs.skinning(circles,viewer);
 	nurbs.draw(viewer,true,true);
 
 	
 }
+void testPiafit(igl::opengl::glfw::Viewer &viewer)
+{
+	MatrixXd points;
+	loadpoints("../g.cur", points);
+	
+	//viewer.data().add_points(points, RowVector3d(0, 1, 0));
+	nurbs.piafit(points, 100, 1e-5);
+	//nurbs.piafit(nurbs_load.controlPw);
+	
+	nurbs.draw(viewer, false, true,0.0001);
+}
 
+void testLSPIAfit(igl::opengl::glfw::Viewer &viewer)
+{
+	MatrixXd points;
+	loadpoints("../curve1.cpt", points);
+	
+	viewer.data().add_points(points, RowVector3d(0, 1, 0));
+	//viewer.data().add_points(points, RowVector3d(0, 1, 0));
+	nurbs.lspiafit(points, 5);
+	//nurbs.piafit(nurbs_load.controlPw);
+
+	nurbs.draw(viewer, true, true, 0.0001);
+}
 
 int main(int argc, char *argv[])
 {
@@ -102,12 +125,15 @@ int main(int argc, char *argv[])
 
   // Plot the mesh
   igl::opengl::glfw::Viewer viewer;
+  //testPiafit(viewer);
+  testLSPIAfit(viewer);
   //testBezierCurve(viewer);
   //testCube(viewer);
 //   testNURBSCurve(viewer);
 //   testCylindr(viewer);
 //   testTorus(viewer);
-   testSurface1(viewer);
+  //testBasisFunction();
+   //testSurface1(viewer);
   //testInterpolate(viewer);
   //nurbs.loadNURBS("circle.cptw");
   //nurbs.draw(viewer);
@@ -115,8 +141,8 @@ int main(int argc, char *argv[])
   //testLampSkinning(viewer);
 
   //cout<< nurbs.loadNURBS("../circle1.cptw")<<endl;
-
-  //viewer.callback_key_down = &key_down;
-  //nurbs.draw(viewer,showpolygon, showsurface);
+  //viewer.data().add_label(Vector3d(1.0, 0.0, 1.0), "haha");
+ /* viewer.callback_key_down = &key_down;
+  nurbs.draw(viewer,showpolygon, showsurface);*/
   viewer.launch();
 }

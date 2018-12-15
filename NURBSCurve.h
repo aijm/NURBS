@@ -57,6 +57,18 @@ struct NURBSCurve
 	// interpolate with appointed knot vector
 	void interpolate(const MatrixXd &points, const VectorXd &knotvector);
 
+	// pia fit by B-spline of degree 3
+	void piafit(const MatrixXd &points,int max_iter_num=100, double eps=1e-5);
+
+	// pia fit with appointed knot vector
+	void piafit(const MatrixXd &points, const VectorXd &knotvector, int max_iter_num = 100, double eps = 1e-5);
+
+	// given Q_0,...,Q_m, fit by B-spline with control points P_0,...,P_n
+	void lspiafit(const MatrixXd & points, const int &n_cpts);
+
+	// lspia fit with appointed knot vector
+	void lspiafit(const MatrixXd & points, const int &n_cpts, const VectorXd & knotvector);
+
 	// kont insertion
 	bool insert(double t);
 

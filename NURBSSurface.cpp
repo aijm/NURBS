@@ -280,6 +280,7 @@ void NURBSSurface::drawSurface(igl::opengl::glfw::Viewer &viewer, double resolut
 		for (int i = 0; i <= uspan; i++)
 		{
 			RowVectorXd curvePoint = eval(u_low + i*u_resolution, v_low + j*v_resolution).row(0);
+			//cout << "curvepoint: " << curvePoint << endl;
 			if (isRational) { mesh_V.row(j*(uspan + 1) + i) = curvePoint.hnormalized(); }
 			else { mesh_V.row(j*(uspan + 1) + i) = curvePoint; }
 		}

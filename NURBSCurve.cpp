@@ -134,6 +134,12 @@ double NURBSCurve::basis(int i,int p, double t,const VectorXd &knotvector)
 	//cout << "knotvector:\n" << knotvector.transpose() << endl;
 	//int p = knotvector.size() - 1;
 	assert(p >= 1);
+	if (t<knotvector(i) || t>knotvector(i + p)) {
+		return 0.0;
+	}
+	if (p > 1 && t == knotvector(i + p) && t == knotvector(i + 1)) {
+		return 1.0;
+	}
 	if (p == 1) {
 		if (t >= knotvector(i)&& t < knotvector(i+1)) {
 			return 1.0;
@@ -258,6 +264,185 @@ void NURBSCurve::interpolate(const MatrixXd &points, const VectorXd &knotvector)
 	controlPw = controlP;
 }
 
+void NURBSCurve::piafit(const MatrixXd &points, int max_iter_num, double eps)
+{
+	assert(points.rows() > 1 && points.cols() > 0);
+	this->n = points.rows() - 1;
+	this->k = 4;
+	this->isRational = false;
+	VectorXd params(points.rows());
+	params = parameterize(points);
+	cout << "params: " << params.transpose() << endl;
+	knots = VectorXd(n + k + 1);
+	knots(0) = 0.0; knots(1) = 0.0; knots(2) = 0.0; knots(3) = 0.0;
+	knots(n + 4) = 1.0; knots(n + 3) = 1.0; knots(n + 2) = 1.0; knots(n + 1) = 1.0;
+	knots.segment(4, n - 3) = params.segment(2, n - 3);
+	cout << "knots:" << knots.transpose() << endl;
+
+	controlPw = points;
+	double error = 1.0;
+	int iter_num = 0;
+	MatrixXd delta(points.rows(), points.cols());
+	while (error>eps && iter_num<max_iter_num) {
+		
+		for (int j = 0; j <= n; j++) {
+			delta.row(j) = points.row(j) - eval(params(j));
+		}
+		
+		controlPw += delta;
+		
+		error = delta.rowwise().norm().maxCoeff();
+		iter_num++;
+		cout << "iter: " << iter_num << ", error: " << error << endl;
+	}
+
+
+}
+
+void NURBSCurve::piafit(const MatrixXd &points, const VectorXd &knotvector,int max_iter_num, double eps)
+{
+	assert(points.rows() > 1 && points.cols() > 0);
+	this->n = points.rows() - 1;
+	this->k = 4;
+	this->isRational = false;
+	VectorXd params(points.rows());
+	params = parameterize(points);
+	knots = knotvector;
+
+
+	controlPw = points;
+	double error = 1.0;
+	int iter_num = 0;
+	MatrixXd delta(points.rows(), points.cols());
+	while (error>eps && iter_num<max_iter_num) {
+
+		for (int j = 0; j <= n; j++) {
+			delta.row(j) = points.row(j) - eval(params(j));
+		}
+
+		controlPw += delta;
+
+		error = delta.rowwise().norm().maxCoeff();
+		iter_num++;
+		cout << "iter: " << iter_num << ", error: " << error << endl;
+	}
+}
+// given Q_0,...,Q_m, fit by B-spline with control points P_0,...,P_n
+void NURBSCurve::lspiafit(const MatrixXd & points, const int &n_cpts)
+{
+	assert(points.rows() > 1 && points.cols() > 0);
+	this->k = 4;
+	const int m = points.rows() - 1;
+	this->n = n_cpts - 1;
+	const int dimension = points.cols();
+	controlPw = MatrixXd(n_cpts, dimension);
+	knots = VectorXd(n + k + 1);
+	
+	VectorXd params = parameterize(points);
+	// initialize knot vector
+	knots(0) = 0.0; knots(1) = 0.0; knots(2) = 0.0; knots(3) = 0.0;
+	knots(n + 4) = 1.0; knots(n + 3) = 1.0; knots(n + 2) = 1.0; knots(n + 1) = 1.0;
+	double d = 1.0 * (m + 1) / (n - 2);
+	for (int j = 1; j <= n - 3; j++) {
+		int i = j*d;
+		double alpha = 1.0*j*d - i;
+		knots(j + 3) = (1.0 - alpha)*params(i - 1) + alpha*params(i);
+	}
+	cout << "knots: " << knots.transpose() << endl;
+	// initial control points P_0,...,P_n
+	controlPw.row(0) = points.row(0);
+	controlPw.row(n) = points.row(m);
+	for (int i = 1; i <= n-1; i++) {
+		int index = 1.0*(m + 1)*i / n;
+		controlPw.row(i) = points.row(index);
+	}
+	// calculate basis function matrix A
+	MatrixXd A(m + 1, n + 1);
+	for (int i = 0; i <= m; i++) {
+		for (int j = 0; j <= n; j++) {
+			A(i, j) = basis(j, 4, params(i), knots);
+		}
+	}
+	// calculate mu paramerter of LSPIA
+	double mu = 2.0 / (A.transpose()*A).rowwise().sum().maxCoeff();
+	// iteration: P_(k+1) = P_k + mu*A.transpose()(Q-AP_k)
+	const int max_iter_num = 100;
+	const double eps = 1e-2;
+	double error = 1.0;
+	int iter_num = 0;
+	
+	MatrixXd delta(m + 1, dimension);
+	/*cout << "Q_m: " << points.row(m) << endl;
+	cout << "P(1):" << eval(1.0) << endl;
+	cout << "P_n: " << controlPw.row(n) << endl;
+	cout << "A: \n" << A << endl;
+	cout << "A*controlPw: \n" << A*controlPw << endl;*/
+	while (error>eps && iter_num<max_iter_num) {
+		delta = points - A*controlPw;
+		//cout << "delta: \n" << delta << endl;
+
+		controlPw += mu*A.transpose()*delta;
+
+		error = delta.rowwise().norm().maxCoeff();
+		iter_num++;
+		cout << "iter: " << iter_num << ", error: " << error << endl;
+	}
+}
+
+void NURBSCurve::lspiafit(const MatrixXd & points, const int &n_cpts, const VectorXd & knotvector)
+{
+	assert(points.rows() > 1 && points.cols() > 0);
+	this->k = 4;
+	const int m = points.rows() - 1;
+	this->n = n_cpts - 1;
+	const int dimension = points.cols();
+	controlPw = MatrixXd(n_cpts, dimension);
+	
+	VectorXd params = parameterize(points);
+
+	
+	knots = knotvector;
+
+	double d = 1.0 * (m + 1) / (n - 2);
+	for (int j = 1; j <= n - 3; j++) {
+		int i = j*d;
+		double alpha = 1.0*j*d - i;
+		knots(j + 3) = (1 - alpha)*params(i - 1) + alpha*params(i);
+	}
+	// initial control points P_0,...,P_n
+	controlPw.row(0) = points.row(0);
+	controlPw.row(n) = points.row(m);
+	for (int i = 1; i <= n - 1; i++) {
+		int index = 1.0*(m + 1)*i / n;
+		controlPw.row(i) = points.row(index);
+	}
+	// calculate basis function matrix A
+	MatrixXd A(m + 1, n + 1);
+	for (int i = 0; i <= m; i++) {
+		for (int j = 0; j <= n; j++) {
+			A(i, j) = basis(j, 4, params(i), knots);
+		}
+	}
+	// calculate mu paramerter of LSPIA
+	double mu = 2.0 / (A.transpose()*A).rowwise().sum().maxCoeff();
+	// iteration: P_(k+1) = P_k + mu*A.transpose()(Q-AP_k)
+	const int max_iter_num = 100;
+	const double eps = 1e-2;
+	double error = 1.0;
+	int iter_num = 0;
+	MatrixXd delta(m + 1, dimension);
+
+	while (error>eps && iter_num<max_iter_num) {
+		delta = points - A*controlPw;
+
+		controlPw += mu*A.transpose()*delta;
+
+		error = delta.rowwise().norm().maxCoeff();
+		iter_num++;
+		cout << "iter: " << iter_num << ", error: " << error << endl;
+	}
+}
+
 bool NURBSCurve::insert(double t)
 {
 	/*cout << "before inserting:------------------" << endl;
@@ -361,7 +546,7 @@ void NURBSCurve::draw(
 		drawControlPolygon(viewer);
 	}
 	if(showsurface){
-		drawSurface(viewer);
+		drawSurface(viewer, resolution);
 	}
 	viewer.core.align_camera_center(controlP);
 }
