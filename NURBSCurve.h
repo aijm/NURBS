@@ -41,10 +41,10 @@ struct NURBSCurve
 	bool saveNURBS(string);
 	
 	// find the knot interval of t by binary searching
-	int find_ind(double t);
+	int find_ind(double t)const;
 
 	// evaluate the coordinate of curvePoint with parameter t  
-	MatrixXd eval(double t);
+	MatrixXd eval(double t)const;
 
 	// chord length parameterization
 	static VectorXd parameterize(const MatrixXd &points);

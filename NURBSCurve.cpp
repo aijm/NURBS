@@ -74,7 +74,7 @@ bool NURBSCurve::saveNURBS(string name){
 }
 
 // find the knot interval of t by binary searching
-int NURBSCurve::find_ind(double t)
+int NURBSCurve::find_ind(double t) const
 {
 	
 	if (t == knots(n + 1)) return n;
@@ -93,7 +93,7 @@ int NURBSCurve::find_ind(double t)
 }
 
 // evaluate the coordinate of curvePoint with parameter t  
-MatrixXd NURBSCurve::eval(double t)
+MatrixXd NURBSCurve::eval(double t) const
 {
 	// find the knot interval of t by binary searching
 	int L = find_ind(t); //[t_L,t_(L+1)] 
@@ -177,28 +177,41 @@ void NURBSCurve::interpolate(const MatrixXd &points)
 	knots(K + 6) = 1.0; knots(K + 5) = 1.0; knots(K + 4) = 1.0;
 	//cout << "knots:\n" << knots << endl;
 	isRational = false;
+	if (points.cols() == 4) {
+		isRational = true;
+	}
 	n = K + 2; // X_0,X_1,...,X_(K+2)
 	k = 4; // order 4
-	controlP = MatrixXd::Zero(K + 3, points.cols());
-	controlP.row(0) = points.row(0);
-	controlP.row(K + 2) = points.row(K);
+	controlPw = MatrixXd::Zero(K + 3, points.cols());
+	controlPw.row(0) = points.row(0);
+	controlPw.row(K + 2) = points.row(K);
 
-	// solve linear equation: AX = b
-	VectorXd d0 = (1.0 / (params(0) - params(1)) + 1.0 / (params(0) - params(2)))*points.row(0)
-				+ (1.0 / (params(1) - params(0)) + 1.0 / (params(2) - params(1)))*points.row(1)
-				+ (1.0 / (params(2) - params(0)) + 1.0 / (params(2) - params(1)))*points.row(2);
+	//// solve linear equation: AX = b
+	//VectorXd d0 = (1.0 / (params(0) - params(1)) + 1.0 / (params(0) - params(2)))*points.row(0)
+	//			+ (1.0 / (params(1) - params(0)) + 1.0 / (params(2) - params(1)))*points.row(1)
+	//			+ (1.0 / (params(2) - params(0)) + 1.0 / (params(2) - params(1)))*points.row(2);
 
-	VectorXd dK = (1.0 / (params(K) - params(K-1)) + 1.0 / (params(K) - params(K-2)))*points.row(K)
-		+ (1.0 / (params(K-1) - params(K)) + 1.0 / (params(K-2) - params(K-1)))*points.row(K-1)
-		+ (1.0 / (params(K-1) - params(K-2)) - 1.0 / (params(K) - params(K-2)))*points.row(K-2);
+	//VectorXd dK = (1.0 / (params(K) - params(K-1)) + 1.0 / (params(K) - params(K-2)))*points.row(K)
+	//	+ (1.0 / (params(K-1) - params(K)) + 1.0 / (params(K-2) - params(K-1)))*points.row(K-1)
+	//	+ (1.0 / (params(K-1) - params(K-2)) - 1.0 / (params(K) - params(K-2)))*points.row(K-2);
 	MatrixXd X(K + 1, points.cols()); //X_1,...,X_(K+1)
 	MatrixXd A = MatrixXd::Zero(K + 1, K + 1);
 	
 	MatrixXd b = points;
-	b.row(0) += (params(1) - params(0)) / 3 * d0;
-	b.row(K) -= (params(K) - params(K - 1)) / 3 * dK;
+	/*b.row(0) += (params(1) - params(0)) / 3 * d0;
+	b.row(K) -= (params(K) - params(K - 1)) / 3 * dK;*/
 
-	A(0, 0) = A(K, K) = 1.0;
+	//A(0, 0) = A(K, K) = 1.0;
+	double delta0 = params(1) - params(0);
+	double delta1 = params(2) - params(1);
+	double delta2 = params(K) - params(K - 1);
+	double delta3 = params(K - 1) - params(K - 2);
+	A(0, 0) = (2.0*delta0 + delta1) / (delta0 + delta1);
+	A(0, 1) = -delta0 / (delta0 + delta1);
+	A(K, K - 1) = -delta2 / (delta2 + delta3);
+	A(K, K) = (2.0*delta2 + delta3) / (delta2 + delta3);
+
+
 	for (int i = 1; i <= K - 1; i++) {
 		A(i, i - 1) = basis(i, 4, params(i), knots);
 		A(i, i) = basis(i + 1, 4, params(i), knots);
@@ -209,8 +222,8 @@ void NURBSCurve::interpolate(const MatrixXd &points)
 	//cout << "A:\n" << A << endl;
 	X = A.inverse()*b;
 	//cout << "X:\n" << X << endl;
-	controlP.block(1, 0, K + 1, points.cols()) = X;
-	controlPw = controlP;
+	controlPw.block(1, 0, K + 1, points.cols()) = X;
+	
 
 }
 
@@ -228,28 +241,40 @@ void NURBSCurve::interpolate(const MatrixXd &points, const VectorXd &knotvector)
 	knots(K + 6) = 1.0; knots(K + 5) = 1.0; knots(K + 4) = 1.0;*/
 	//cout << "knots:\n" << knots << endl;
 	isRational = false;
+	if (points.cols() == 4) {
+		isRational = true;
+	}
 	n = K + 2; // X_0,X_1,...,X_(K+2)
 	k = 4; // order 4
-	controlP = MatrixXd::Zero(K + 3, points.cols());
-	controlP.row(0) = points.row(0);
-	controlP.row(K + 2) = points.row(K);
+	controlPw = MatrixXd::Zero(K + 3, points.cols());
+	controlPw.row(0) = points.row(0);
+	controlPw.row(K + 2) = points.row(K);
 
 	// solve linear equation: AX = b
-	VectorXd d0 = (1.0 / (params(0) - params(1)) + 1.0 / (params(0) - params(2)))*points.row(0)
+	/*VectorXd d0 = (1.0 / (params(0) - params(1)) + 1.0 / (params(0) - params(2)))*points.row(0)
 		+ (1.0 / (params(1) - params(0)) + 1.0 / (params(2) - params(1)))*points.row(1)
 		+ (1.0 / (params(2) - params(0)) + 1.0 / (params(2) - params(1)))*points.row(2);
 
 	VectorXd dK = (1.0 / (params(K) - params(K - 1)) + 1.0 / (params(K) - params(K - 2)))*points.row(K)
 		+ (1.0 / (params(K - 1) - params(K)) + 1.0 / (params(K - 2) - params(K - 1)))*points.row(K - 1)
-		+ (1.0 / (params(K - 1) - params(K - 2)) - 1.0 / (params(K) - params(K - 2)))*points.row(K - 2);
+		+ (1.0 / (params(K - 1) - params(K - 2)) - 1.0 / (params(K) - params(K - 2)))*points.row(K - 2);*/
 	MatrixXd X(K + 1, points.cols()); //X_1,...,X_(K+1)
 	MatrixXd A = MatrixXd::Zero(K + 1, K + 1);
 
 	MatrixXd b = points;
-	b.row(0) += (params(1) - params(0)) / 3 * d0;
-	b.row(K) -= (params(K) - params(K - 1)) / 3 * dK;
+	/*b.row(0) += (params(1) - params(0)) / 3 * d0;
+	b.row(K) -= (params(K) - params(K - 1)) / 3 * dK;*/
 
-	A(0, 0) = A(K, K) = 1.0;
+	//A(0, 0) = A(K, K) = 1.0;
+	double delta0 = params(1) - params(0);
+	double delta1 = params(2) - params(1);
+	double delta2 = params(K) - params(K - 1);
+	double delta3 = params(K - 1) - params(K - 2);
+	A(0, 0) = (2.0*delta0 + delta1) / (delta0 + delta1);
+	A(0, 1) = -delta0 / (delta0 + delta1);
+	A(K, K - 1) = -delta2 / (delta2 + delta3);
+	A(K, K) = (2.0*delta2 + delta3) / (delta2 + delta3);
+
 	for (int i = 1; i <= K - 1; i++) {
 		A(i, i - 1) = basis(i, 4, params(i), knots);
 		A(i, i) = basis(i + 1, 4, params(i), knots);
@@ -260,8 +285,8 @@ void NURBSCurve::interpolate(const MatrixXd &points, const VectorXd &knotvector)
 	//cout << "A:\n" << A << endl;
 	X = A.inverse()*b;
 	//cout << "X:\n" << X << endl;
-	controlP.block(1, 0, K + 1, points.cols()) = X;
-	controlPw = controlP;
+	controlPw.block(1, 0, K + 1, points.cols()) = X;
+	
 }
 
 void NURBSCurve::piafit(const MatrixXd &points, int max_iter_num, double eps)
@@ -385,7 +410,7 @@ void NURBSCurve::lspiafit(const MatrixXd & points, const int &n_cpts)
 
 		error = delta.rowwise().norm().maxCoeff();
 		iter_num++;
-		cout << "iter: " << iter_num << ", error: " << error << endl;
+		//cout << "iter: " << iter_num << ", error: " << error << endl;
 	}
 }
 
@@ -403,12 +428,6 @@ void NURBSCurve::lspiafit(const MatrixXd & points, const int &n_cpts, const Vect
 	
 	knots = knotvector;
 
-	double d = 1.0 * (m + 1) / (n - 2);
-	for (int j = 1; j <= n - 3; j++) {
-		int i = j*d;
-		double alpha = 1.0*j*d - i;
-		knots(j + 3) = (1 - alpha)*params(i - 1) + alpha*params(i);
-	}
 	// initial control points P_0,...,P_n
 	controlPw.row(0) = points.row(0);
 	controlPw.row(n) = points.row(m);
@@ -439,7 +458,7 @@ void NURBSCurve::lspiafit(const MatrixXd & points, const int &n_cpts, const Vect
 
 		error = delta.rowwise().norm().maxCoeff();
 		iter_num++;
-		cout << "iter: " << iter_num << ", error: " << error << endl;
+		//cout << "iter: " << iter_num << ", error: " << error << endl;
 	}
 }
 
@@ -495,6 +514,9 @@ void NURBSCurve::drawControlPolygon(igl::opengl::glfw::Viewer &viewer){
 	
 	// plot control points
 	viewer.data().add_points(controlP, Eigen::RowVector3d(1, 1, 1));
+	for (int i = 0; i <= n; i++) {
+		viewer.data().add_label(controlP.row(i), std::to_string(i));
+	}
 	// plot control polygon
 	for (int i = 0; i < n; i++){
 		viewer.data().add_edges(

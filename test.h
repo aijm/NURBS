@@ -41,21 +41,11 @@ void testInterpolate(igl::opengl::glfw::Viewer &viewer)
 	NURBSCurve nurbs;
 
 	
-	// MatrixXd points = (MatrixXd(9, 3) <<
-	// 	1.0, 0.0, 0.0,
-	// 	1.0, 1.0, 0.0,
-	// 	0.0, 1.0, 0.0,
-	// 	-1.0, 1.0, 0.0,
-	// 	-1.0, 0.0, 0.0,
-	// 	-1.0, -1.0, 0.0,
-	// 	0.0, -1.0, 0.0,
-	// 	1.0, -1.0, 0.0,
-	// 	1.0, 0.0, 0.0).finished();
-	MatrixXd points = (MatrixXd(4, 2) <<
+	
+	MatrixXd points = (MatrixXd(3, 2) <<
 		-5, -25,
-		-25, -15,
-		-5, -5,
-		-25, 25).finished();
+		-8, -10,
+		-5, -5).finished();
 	
 	nurbs.interpolate(points);
 	cout << "knots: " << nurbs.knots.transpose() << endl;

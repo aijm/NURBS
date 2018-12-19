@@ -376,12 +376,11 @@ void NURBSSurface::skinning(const vector<NURBSCurve> &curves,igl::opengl::glfw::
 			}
 		}
 	}
+
 	
 	for (int i = 0; i < new_curves.size(); i++) {
 		cout << "curve " << i << ": " << new_curves[i].knots.transpose() << endl;
-		/*if (i == 3 || i == 4) {
-			viewer.data().add_points(new_curves[i].controlPw.rowwise().hnormalized(), RowVector3d(0, 1, 0));
-		}*/
+		new_curves[i].draw(viewer);
 	}
 	
 
@@ -412,7 +411,7 @@ void NURBSSurface::skinning(const vector<NURBSCurve> &curves,igl::opengl::glfw::
 
 	//uknots << 0, 0, 0, 0, 2.0/12, 4.0/12, 5.0/12, 7.0/12, 8.0/12, 11.0/12, 1, 1, 1, 1;
 
-	//cout << "uknots: " << uknots.transpose() << endl;
+	cout << "uknots: " << uknots.transpose() << endl;
 	// interpolate points to get the NURBS skinning surface control points
 	controlPw = vector<MatrixXd>(v_num + 1);
 	for (int i = 0; i < controlPw.size(); i++) {
@@ -421,31 +420,19 @@ void NURBSSurface::skinning(const vector<NURBSCurve> &curves,igl::opengl::glfw::
 
 	for (int i = 0; i <= v_num; i++) {
 		MatrixXd u_ctps = MatrixXd::Zero(curve_num + 1, dimension);
+
 		for (int j = 0; j <= curve_num; j++) {
 			u_ctps.row(j) = new_curves[j].controlPw.row(i);
+			
 		}
+		//viewer.data().add_points(u_ctps, RowVector3d(0, 1, 0));
 		NURBSCurve nurbs;
 		
 		nurbs.interpolate(u_ctps, uknots);
-
-		//nurbs.isRational = false;
-		/*if (i==3) {
-			viewer.data().add_points(u_ctps.rowwise().hnormalized(), RowVector3d(0, 1, 0));
-			cout << "points:\n" << u_ctps << endl;
-			cout << "knots: " << nurbs.knots.transpose() << endl;
-			nurbs.draw(viewer, true, true);
-			
-		}*/
-		
-		//cout << "dim: " << nurbs.controlPw.cols() << endl;
+		//nurbs.interpolate(u_ctps);
+		nurbs.draw(viewer, false, true);
 		controlPw[i] = nurbs.controlPw;
-		/*if (i == 3) {
-			viewer.data().add_points(controlPw[i].rowwise().hnormalized(), RowVector3d(1, 0, 0));
-		}
-		else if (i == 4) {
-			viewer.data().add_points(controlPw[i].rowwise().hnormalized(), RowVector3d(0, 1, 0));
-		}*/
+
 	}
-	//dimension = 3;
 	cout << "skinning finished!" << endl;
 }
